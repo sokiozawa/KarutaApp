@@ -92,7 +92,7 @@ jobs:
 
       - name: Upload APK artifact
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: karuta-app-apk
           path: bin/*.apk
@@ -100,7 +100,7 @@ jobs:
 
       - name: Upload build logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-logs
           path: |
