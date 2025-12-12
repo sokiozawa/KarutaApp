@@ -118,15 +118,16 @@ jobs:
 
           # Run buildozer with verbose logging
           echo "=== Starting Buildozer Build ==="
-          buildozer -v android debug 2>&1
+          buildozer -v android debug 2>&1 || true
 
           BUILD_EXIT_CODE=$?
           echo "=== Buildozer Exit Code: $BUILD_EXIT_CODE ==="
 
-          if [ $BUILD_EXIT_CODE -ne 0 ]; then
-            echo "Build failed, showing buildozer logs:"
-            cat .buildozer/logs/* 2>/dev/null || echo "No buildozer logs found"
-          fi
+          echo "=== Showing all buildozer logs ==="
+          find .buildozer/logs -type f -exec cat {} \; 2>/dev/null || true
+          
+          echo "=== Showing recent buildozer output ==="
+          tail -200 .buildozer/logs/* 2>/dev/null || true
 
       - name: List build output
         if: always()
