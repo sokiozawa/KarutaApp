@@ -90,6 +90,11 @@ jobs:
           ls -la $ANDROID_SDK_ROOT/build-tools/ || echo "build-tools not found"
           ls -la $ANDROID_SDK_ROOT/ndk/ || echo "ndk not found"
 
+      - name: Clear buildozer cache
+        run: |
+          rm -rf .buildozer/ 2>/dev/null || true
+          echo "Buildozer cache cleared"
+
       - name: Build Android APK with buildozer
         run: |
           # Set environment variables for buildozer
@@ -161,6 +166,9 @@ jobs:
         with:
           name: build-logs
           path: |
-            .buildozer/android/platform/build*/build/other_builds/*/build/.buildozer_log
             .buildozer/logs/
+            .buildozer/android/platform/build*/build/other_builds/*/build/.buildozer_log
+            .buildozer/android/platform/build-*/build/other_builds/*/build/.buildozer_log
+          if-no-files-found: warn
+          retention-days: 7
           retention-days: 7
