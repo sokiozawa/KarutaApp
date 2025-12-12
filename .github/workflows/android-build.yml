@@ -77,6 +77,7 @@ jobs:
           # Install packages with --install flag
           sdkmanager --sdk_root=$ANDROID_SDK_ROOT --install "platforms;android-33" 2>&1 || true
           sdkmanager --sdk_root=$ANDROID_SDK_ROOT --install "build-tools;33.0.2" 2>&1 || true
+          sdkmanager --sdk_root=$ANDROID_SDK_ROOT --install "platform-tools" 2>&1 || true
           sdkmanager --sdk_root=$ANDROID_SDK_ROOT --install "ndk;25.2.9519653" 2>&1 || true
 
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
