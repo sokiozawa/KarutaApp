@@ -1,0 +1,109 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "11"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git \
+            build-essential \
+            libssl-dev \
+            libffi-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            libreadline-dev \
+            libsqlite3-dev \
+            libbz2-dev \
+            zlib1g-dev \
+            liblzma-dev \
+            tkinter \
+            xclip \
+            xsel \
+            cython \
+            wget
+
+      - name: Install buildozer and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install buildozer cython
+          pip install kivy
+
+      - name: Download and set up Android SDK/NDK
+        run: |
+          # Set up Android SDK path
+          export ANDROID_SDK_ROOT=$HOME/.android/sdk
+          mkdir -p $ANDROID_SDK_ROOT
+
+          # Download Android Command-line Tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdtools.zip
+          unzip -q /tmp/cmdtools.zip -d $ANDROID_SDK_ROOT
+          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/latest
+          mv $ANDROID_SDK_ROOT/cmdline-tools/* $ANDROID_SDK_ROOT/cmdline-tools/latest/ 2>/dev/null || true
+
+          # Add to PATH
+          export PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH
+
+          # Accept licenses and install SDK packages
+          echo "y" | sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653" 2>/dev/null || true
+
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+
+      - name: Build Android APK with buildozer
+        run: |
+          # Set environment variables for buildozer
+          export ANDROID_SDK_ROOT=${{ env.ANDROID_SDK_ROOT }}
+          export ANDROID_NDK_ROOT=${{ env.ANDROID_NDK_ROOT }}
+
+          # Run buildozer
+          buildozer -v android debug
+
+      - name: List build output
+        if: always()
+        run: |
+          find . -name "*.apk" -type f
+          ls -lah bin/ 2>/dev/null || echo "bin directory not found"
+
+      - name: Upload APK artifact
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: karuta-app-apk
+          path: bin/*.apk
+          retention-days: 30
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-logs
+          path: |
+            .buildozer/android/platform/build*/build/other_builds/*/build/.buildozer_log
+            .buildozer/logs/
+          retention-days: 7

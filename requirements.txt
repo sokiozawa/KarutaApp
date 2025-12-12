@@ -1,0 +1,4 @@
+pygame
+pip install -r requirements.txt
+pip install pyinstaller
+pyinstaller --onefile --windowed --icon=icon.ico --name=my_game_executable main.py
