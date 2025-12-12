@@ -41,6 +41,10 @@ android.ndk = 25b
 # ビルドツール
 android.build_tools_version = 33.0.2
 
+# SDK/NDK パスを明示的に指定
+android.sdk_path = $HOME/.android/sdk
+android.ndk_path = $HOME/.android/sdk/ndk/25.2.9519653
+
 # 署名（デバッグ用はBuildozerが自動生成）
 android.release = 0
 
