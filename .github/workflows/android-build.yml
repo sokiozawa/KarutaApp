@@ -122,16 +122,30 @@ jobs:
       - name: List build output
         if: always()
         run: |
-          find . -name "*.apk" -type f
+          echo "=== Searching for APK files ==="
+          find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+
+          echo "=== Buildozer output directory structure ==="
+          ls -la .buildozer/android/platform/build*/build/outputs/apk/ 2>/dev/null || echo "Standard APK output not found"
+
+          echo "=== All APK files in workspace ==="
+          find . -name "*.apk" -o -name "*.aab" 2>/dev/null || true
+
+          echo "=== bin directory ==="
           ls -lah bin/ 2>/dev/null || echo "bin directory not found"
 
+          echo "=== .buildozer directory ==="
+          ls -lah .buildozer/android/platform/ 2>/dev/null | head -20 || echo ".buildozer directory structure not accessible"
+
       - name: Upload APK artifact
-        if: success()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: karuta-app-apk
-          path: bin/*.apk
-          retention-days: 30
+          path: |
+            bin/*.apk
+            .buildozer/android/platform/build*/build/outputs/apk/**/*.apk
+          if-no-files-found: warn
 
       - name: Upload build logs
         if: always()
