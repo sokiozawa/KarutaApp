@@ -113,32 +113,39 @@ jobs:
 
           # Run buildozer with verbose logging
           echo "=== Starting Buildozer Build ==="
-          buildozer -v android debug 2>&1 | tee build.log
+          buildozer -v android debug 2>&1
 
-          # Print last 100 lines of build log on error
-          echo "=== Build Result ==="
-          tail -100 build.log
+          BUILD_EXIT_CODE=$?
+          echo "=== Buildozer Exit Code: $BUILD_EXIT_CODE ==="
+
+          if [ $BUILD_EXIT_CODE -ne 0 ]; then
+            echo "Build failed, showing buildozer logs:"
+            cat .buildozer/logs/* 2>/dev/null || echo "No buildozer logs found"
+          fi
 
       - name: List build output
         if: always()
         run: |
-          echo "=== Searching for APK files ==="
-          APK_FILES=$(find . -name "*.apk" -type f 2>/dev/null)
-          echo "$APK_FILES"
+          echo "=== Complete workspace search for APK files ==="
+          find . -type f -name "*.apk" 2>/dev/null | head -20 || echo "No APK files found"
 
-          if [ -z "$APK_FILES" ]; then
-            echo "No APK files found in workspace"
-          else
-            echo "Found APK files - copying to bin directory:"
-            mkdir -p bin
-            find . -name "*.apk" -type f 2>/dev/null -exec cp {} bin/ \;
-          fi
+          echo "=== .buildozer directory structure ==="
+          find .buildozer -type d | head -30 || echo ".buildozer not found"
 
-          echo "=== bin directory contents ==="
+          echo "=== Search for APK in .buildozer ==="
+          find .buildozer -type f -name "*.apk" 2>/dev/null || echo "No APK in .buildozer"
+
+          echo "=== bin directory ==="
           ls -lah bin/ 2>/dev/null || echo "bin directory not found"
 
-          echo "=== Complete .buildozer directory structure ==="
-          find .buildozer -type f -name "*.apk" 2>/dev/null | head -10 || echo "No APK in .buildozer"
+          echo "=== Create bin directory and look for APK elsewhere ==="
+          mkdir -p bin
+
+          echo "=== Search in dist ==="
+          find . -path ./venv -prune -o -type f -name "*debug*.apk" -print 2>/dev/null || echo "No debug APK found"
+
+          echo "=== Check .buildozer/android/platform structure ==="
+          ls -la .buildozer/android/platform/ 2>/dev/null | head -20
 
       - name: Upload APK artifact
         if: always()
