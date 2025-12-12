@@ -38,6 +38,9 @@ android.api = 33
 android.minapi = 21
 android.ndk = 25b
 
+# ビルドツール
+android.build_tools_version = 33.0.2
+
 # 署名（デバッグ用はBuildozerが自動生成）
 android.release = 0
 
