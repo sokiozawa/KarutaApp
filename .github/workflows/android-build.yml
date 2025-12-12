@@ -41,10 +41,9 @@ jobs:
             libbz2-dev \
             zlib1g-dev \
             liblzma-dev \
-            tkinter \
+            python3-tk \
             xclip \
             xsel \
-            cython \
             wget
 
       - name: Install buildozer and dependencies
